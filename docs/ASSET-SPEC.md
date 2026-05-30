@@ -1,6 +1,6 @@
 # Asset Specification (Publisher Guide)
 
-This document describes the **canonical on-disk format** for Aman assets today. Normative details: [AMAN-ASSET-SPEC-V1.md](./AMAN-ASSET-SPEC-V1.md).
+This document describes the **canonical on-disk format** for Aman assets today. Normative details: [AMAN-ASSET-SPEC-V1.md](./specs/AMAN-ASSET-SPEC-V1.md).
 
 ## Asset types
 

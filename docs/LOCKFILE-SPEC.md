@@ -2,7 +2,7 @@
 
 The lockfile records **exactly what is installed** in an environment scope. It is written by the CLI, not hand-edited.
 
-Normative reference: [AMAN-LOCKFILE-SPEC-V1.md](./AMAN-LOCKFILE-SPEC-V1.md).
+Normative reference: [AMAN-LOCKFILE-SPEC-V1.md](./specs/AMAN-LOCKFILE-SPEC-V1.md).
 
 ## Location
 

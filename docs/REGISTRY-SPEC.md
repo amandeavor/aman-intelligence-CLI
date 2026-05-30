@@ -2,7 +2,7 @@
 
 The registry is the **canonical source of truth** for published asset versions. GitHub and local folders are publish sources, not replacements for the registry.
 
-Normative reference: [AMAN-REGISTRY-SPEC-V1.md](./AMAN-REGISTRY-SPEC-V1.md).
+Normative reference: [AMAN-REGISTRY-SPEC-V1.md](./specs/AMAN-REGISTRY-SPEC-V1.md).
 
 ## Identity
 

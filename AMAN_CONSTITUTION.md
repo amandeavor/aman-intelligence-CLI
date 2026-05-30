@@ -104,8 +104,8 @@ Aman provides:
 
 ## Governance
 
-- Normative specs: `AMAN-ASSET-SPEC-V1.md`, `AMAN-REGISTRY-SPEC-V1.md`, `AMAN-LOCKFILE-SPEC-V1.md`
-- User-facing summaries: `ASSET-SPEC.md`, `REGISTRY-SPEC.md`, `LOCKFILE-SPEC.md`
+- Normative specs: `docs/specs/AMAN-ASSET-SPEC-V1.md`, `docs/specs/AMAN-REGISTRY-SPEC-V1.md`, `docs/specs/AMAN-LOCKFILE-SPEC-V1.md`
+- User-facing summaries: `docs/ASSET-SPEC.md`, `docs/REGISTRY-SPEC.md`, `docs/LOCKFILE-SPEC.md`
 - This constitution wins on **principles**; specs win on **formats**
 
 When in doubt: **protect reproducibility, refuse install-time execution, keep the registry canonical.**

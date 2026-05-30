@@ -14,6 +14,9 @@ coverage/
 .env.*
 !.env.example
 
+# Maintainer-only process docs (kept locally, not published)
+docs/internal/
+
 # Local QA / generated artifacts
 BRUTAL_QA_REPORT.generated.json
 *.corrupt-*

@@ -4,7 +4,7 @@ Thank you for helping make Aman trustworthy for real users.
 
 ## Ways to contribute
 
-1. **Assets** — skills, prompts, or MCPs that follow [ASSET-SPEC.md](./ASSET-SPEC.md)
+1. **Assets** — skills, prompts, or MCPs that follow [docs/ASSET-SPEC.md](./docs/ASSET-SPEC.md)
 2. **Code** — CLI, registry adapters, docs (keep changes scoped; no architecture drift)
 3. **Documentation** — fixes that match **current behavior**, not future plans
 
@@ -37,7 +37,7 @@ aman doctor
 ### Pull request process
 
 1. Describe the problem and the fix
-2. Note any QA scenarios you ran (`BRUTAL_QA_REPORT.md` categories)
+2. Note any QA scenarios you ran (`npm run typecheck`, `npm run build`, `aman doctor`)
 3. Link related issues if applicable
 4. Wait for review before merge
 

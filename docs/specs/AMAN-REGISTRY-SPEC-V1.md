@@ -428,4 +428,4 @@ aman registry deprecate @aman/caveman@1.0.0 --reason "..." --successor @aman/cav
 
 - [AMAN-ASSET-SPEC-V1.md](./AMAN-ASSET-SPEC-V1.md)
 - [AMAN-LOCKFILE-SPEC-V1.md](./AMAN-LOCKFILE-SPEC-V1.md)
-- [REGISTRY_UNRESOLVED_DECISIONS.md](./REGISTRY_UNRESOLVED_DECISIONS.md)
+- [../REGISTRY-SPEC.md](../REGISTRY-SPEC.md) — publisher summary

@@ -85,6 +85,6 @@ aman backup list
 
 ## Next steps
 
-- [ASSET-SPEC.md](./ASSET-SPEC.md) — publish assets
-- [REGISTRY-SPEC.md](./REGISTRY-SPEC.md) — registry contract
+- [docs/ASSET-SPEC.md](./docs/ASSET-SPEC.md) — publish assets
+- [docs/REGISTRY-SPEC.md](./docs/REGISTRY-SPEC.md) — registry contract
 - `aman help` — full command list

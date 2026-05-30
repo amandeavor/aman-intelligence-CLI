@@ -69,16 +69,16 @@ aman import owner/repo --global
 | Document | Audience |
 |----------|----------|
 | [QUICK-START.md](./QUICK-START.md) | New users — zero to first asset in minutes |
-| [ASSET-SPEC.md](./ASSET-SPEC.md) | Publishers — canonical asset format |
-| [REGISTRY-SPEC.md](./REGISTRY-SPEC.md) | Contributors — registry contract |
-| [LOCKFILE-SPEC.md](./LOCKFILE-SPEC.md) | Developers — reproducible installs |
+| [docs/ASSET-SPEC.md](./docs/ASSET-SPEC.md) | Publishers — canonical asset format |
+| [docs/REGISTRY-SPEC.md](./docs/REGISTRY-SPEC.md) | Contributors — registry contract |
+| [docs/LOCKFILE-SPEC.md](./docs/LOCKFILE-SPEC.md) | Developers — reproducible installs |
 | [CONTRIBUTING.md](./CONTRIBUTING.md) | Contributors — code, assets, and PRs |
 | [SECURITY.md](./SECURITY.md) | Security model and reporting |
 | [RELEASE-NOTES.md](./RELEASE-NOTES.md) | Release history |
 | [AMAN_CONSTITUTION.md](./AMAN_CONSTITUTION.md) | Permanent architectural principles |
 | [PUBLISHING.md](./PUBLISHING.md) | Maintainers — npm pack and publish |
 
-Normative specs: `AMAN-ASSET-SPEC-V1.md`, `AMAN-REGISTRY-SPEC-V1.md`, `AMAN-LOCKFILE-SPEC-V1.md`.
+Normative specs: [docs/specs/](./docs/specs/) (`AMAN-ASSET-SPEC-V1.md`, `AMAN-REGISTRY-SPEC-V1.md`, `AMAN-LOCKFILE-SPEC-V1.md`, and related).
 
 ## Configuration
 
