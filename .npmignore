@@ -1,0 +1,30 @@
+# Repo-only — not shipped when package.json "files" whitelist is used.
+# Kept as a safety net for accidental `npm publish` without "files".
+
+src/
+scripts/
+.aman/
+node_modules/
+*.tgz
+
+AMAN-*.md
+BRUTAL_QA_REPORT*
+REGISTRY_UNRESOLVED*
+LAUNCH-BLOCKERS.md
+RELEASE-CHECKLIST.md
+PHASE_*.md
+ASSET_PARITY*
+*.generated.json
+
+QUICK-START.md
+ASSET-SPEC.md
+REGISTRY-SPEC.md
+LOCKFILE-SPEC.md
+CONTRIBUTING.md
+SECURITY.md
+RELEASE-NOTES.md
+PUBLISHING.md
+
+tsconfig.json
+.gitignore
+.cursor/

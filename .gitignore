@@ -1,0 +1,29 @@
+node_modules/
+dist/
+.aman/
+.gemini/
+test-rc-audit.ts
+.tmp/
+coverage/
+*.tgz
+*.amanpack
+.DS_Store
+
+# Environment and secrets
+.env
+.env.*
+!.env.example
+
+# Local QA / generated artifacts
+BRUTAL_QA_REPORT.generated.json
+*.corrupt-*
+
+# Editor and OS
+.idea/
+.vscode/
+*.swp
+Thumbs.db
+
+# Logs
+*.log
+npm-debug.log*

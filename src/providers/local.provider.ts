@@ -1,0 +1,61 @@
+import { AssetProvider } from './provider.interface.js';
+import { AssetType, ProviderResult } from '../types/index.js';
+import { assetService } from '../services/asset.service.js';
+import Fuse from 'fuse.js';
+
+export class LocalProvider implements AssetProvider {
+  name = 'local';
+
+  async search(query: string, type?: AssetType): Promise<ProviderResult[]> {
+    const results: ProviderResult[] = [];
+    const types: AssetType[] = type ? [type] : ['skill', 'prompt', 'mcp'];
+
+    for (const t of types) {
+      const items = await assetService.list(t);
+      for (const item of items) {
+        results.push({
+          type: t,
+          name: item.name,
+          source: item.source || this.name,
+          sources: [item.source || this.name],
+          description: item.description,
+          tags: item.tags,
+          category: item.category,
+          installs: item.installs,
+          rating: item.rating,
+          updated: item.updated,
+          version: item.version,
+          organization: item.organization,
+          installed: item.source === 'installed',
+          confidence: 1.0,
+        });
+      }
+    }
+
+    if (!query) {
+      return results;
+    }
+
+    const fuse = new Fuse(results, {
+      keys: ['name', 'description'],
+      threshold: 0.3,
+    });
+
+    return fuse.search(query).map((r) => r.item);
+  }
+
+  async fetch(name: string, type: AssetType): Promise<string> {
+    const items = await assetService.list(type);
+    const item = items.find((i) => i.name === name);
+    if (!item) {
+      throw new Error(`Asset not found in local provider: ${name}`);
+    }
+    return item.path;
+  }
+
+  async available(): Promise<boolean> {
+    return true;
+  }
+}
+
+export const localProvider = new LocalProvider();

@@ -1,0 +1,75 @@
+{
+  "name": "aman-cli",
+  "version": "0.1.0",
+  "type": "module",
+  "description": "Package manager for AI workflow assets — skills, prompts, MCPs, packs, and stacks.",
+  "bin": {
+    "aman": "./dist/bin/aman.js",
+    "aman-cli": "./dist/bin/aman.js"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "prepack": "npm run build",
+    "prepublishOnly": "npm run typecheck && npm run build",
+    "build": "tsc",
+    "dev": "tsx src/bin/aman.ts",
+    "init": "tsx src/bin/aman.ts init",
+    "setup": "tsx src/bin/aman.ts init",
+    "browse": "tsx src/bin/aman.ts browse",
+    "search": "tsx src/bin/aman.ts search",
+    "doctor": "tsx src/bin/aman.ts doctor",
+    "start": "tsx src/bin/aman.ts",
+    "typecheck": "tsc --noEmit",
+    "pack:check": "npm pack --dry-run"
+  },
+  "dependencies": {
+    "archiver": "^7.0.1",
+    "chalk": "^5.4.1",
+    "conf": "^13.0.1",
+    "fuse.js": "^7.0.0",
+    "glob": "^11.0.1",
+    "ink": "^5.1.0",
+    "ink-select-input": "^6.0.0",
+    "ink-spinner": "^5.0.0",
+    "ink-text-input": "^6.0.0",
+    "js-yaml": "^4.1.0",
+    "meow": "^13.0.0",
+    "react": "^18.3.1"
+  },
+  "devDependencies": {
+    "@types/archiver": "^6.0.3",
+    "@types/js-yaml": "^4.0.9",
+    "@types/node": "^22.0.0",
+    "@types/react": "^18.3.0",
+    "tsx": "^4.19.0",
+    "typescript": "^5.7.0"
+  },
+  "license": "MIT",
+  "author": "Aman Intelligence",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/aman-intelligence/aman-cli.git"
+  },
+  "bugs": {
+    "url": "https://github.com/aman-intelligence/aman-cli/issues"
+  },
+  "homepage": "https://github.com/aman-intelligence/aman-cli#readme",
+  "keywords": [
+    "ai",
+    "workflow",
+    "cli",
+    "assets",
+    "mcp",
+    "skills",
+    "prompts",
+    "agentic-coding",
+    "developer-tools"
+  ]
+}
