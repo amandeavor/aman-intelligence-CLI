@@ -1,13 +1,14 @@
 import path from 'path';
 import { LOCAL_DIR, BUNDLED_SKILLS, BUNDLED_PROMPTS, BUNDLED_MCPS } from '../config/paths.js';
-import { removeDir, exists, ensureDir } from '../storage/filesystem.js';
-import { scanSkills, scanPrompts, scanMcps } from '../storage/scanner.js';
+import { removeDir, exists, readJson, writeJson } from '../storage/filesystem.js';
+import { scanAssetsByType } from '../storage/scan-by-type.js';
 import { lockService } from './lock.service.js';
 import {
   AssetType,
   Scope,
   createAssetMetadata,
   AssetMetadata,
+  AssetListItem,
 } from '../types/index.js';
 import { environmentService } from './environment.service.js';
 import { computeAssetChecksum } from '../utils/integrity.js';
@@ -20,14 +21,13 @@ import {
   migrateScopeLayout,
   migrateTypeRootLayout,
   resolveBundledSource,
+  contentFilePath,
 } from '../storage/asset-layout.js';
 import {
   ensureMcpLocalGitignore,
   mcpRequiresLocalConfig,
   scaffoldMcpLocalConfig,
 } from '../utils/mcp-local.js';
-import { readJson } from '../storage/filesystem.js';
-import { contentFilePath } from '../storage/asset-layout.js';
 
 export class AssetService {
   private scopeRoot(scope: Scope): string {
@@ -119,7 +119,6 @@ export class AssetService {
       updatedAt: installedAt,
     });
 
-    const { writeJson } = await import('../storage/filesystem.js');
     await writeJson(metadataFilePath(destDir), metadataContent);
 
     await lockService.addEntry(scope, {
@@ -159,31 +158,22 @@ export class AssetService {
     await migrateTypeRootLayout(type, this.getBundledDir(type));
   }
 
-  async list(type: AssetType, scope?: Scope): Promise<any[]> {
+  async list(type: AssetType, scope?: Scope): Promise<AssetListItem[]> {
     const bundledDir = this.getBundledDir(type);
     await this.ensureBundledCanonical(type);
 
-    let bundled: any[] = [];
-    if (type === 'skill') bundled = await scanSkills(bundledDir, 'bundled');
-    else if (type === 'prompt') bundled = await scanPrompts(bundledDir, 'bundled');
-    else bundled = await scanMcps(bundledDir, 'bundled');
+    const bundled = await scanAssetsByType(type, bundledDir, 'bundled');
 
-    let installed: any[] = [];
+    let installed: AssetListItem[] = [];
     if (scope) {
       await this.ensureCanonicalLayout(scope);
-      const targetDir = this.getTypeRoot(type, scope);
-      if (type === 'skill') installed = await scanSkills(targetDir, 'installed');
-      else if (type === 'prompt') installed = await scanPrompts(targetDir, 'installed');
-      else installed = await scanMcps(targetDir, 'installed');
+      installed = await scanAssetsByType(type, this.getTypeRoot(type, scope), 'installed');
     } else {
       await this.ensureCanonicalLayout('global');
-      const globalDir = this.getTypeRoot(type, 'global');
-      if (type === 'skill') installed = await scanSkills(globalDir, 'installed');
-      else if (type === 'prompt') installed = await scanPrompts(globalDir, 'installed');
-      else installed = await scanMcps(globalDir, 'installed');
+      installed = await scanAssetsByType(type, this.getTypeRoot(type, 'global'), 'installed');
     }
 
-    const mergedMap = new Map<string, any>();
+    const mergedMap = new Map<string, AssetListItem>();
     for (const item of bundled) mergedMap.set(item.name, item);
     for (const item of installed) mergedMap.set(item.name, item);
 

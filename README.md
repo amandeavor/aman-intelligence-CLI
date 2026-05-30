@@ -1,5 +1,7 @@
 # Aman Intelligence
 
+![Aman Intelligence](./images/ai-cli.png)
+
 Aman is the package manager for AI workflow assets.
 
 Most developers have skills, prompts, and MCP configurations scattered across GitHub repositories, local folders, and notes. Aman gives you one place to install, organize, sync, and share them — the same way npm manages packages.
@@ -42,7 +44,7 @@ npm install -g aman-cli
 aman doctor
 ```
 
-The CLI ships with **no default assets**. Install skills, prompts, and MCPs from the registry, marketplace providers, import, or your own directories.
+The CLI ships with **no default assets**. Install skills, prompts, and MCPs from the registry, import, or your own directories.
 
 ## Three commands that show the value
 
@@ -57,18 +59,24 @@ aman install "@your-scope/your-asset@1.0.0" --global
 aman doctor
 ```
 
-Or import from a folder or GitHub repository:
+Or import from a folder, GitHub repository, another AI tool, or an Aman environment:
 
 ```bash
+aman import                    # interactive wizard (TTY)
+aman import cursor --global    # shorthand syntax for Cursor rules/MCPs
+aman import antigravity --global # shorthand syntax for Antigravity rules/MCPs
 aman import ./my-assets --global
 aman import owner/repo --global
 ```
+
+See [docs/IMPORT-GUIDE.md](./docs/IMPORT-GUIDE.md) for the full import guide covering Claude Code, Cursor, Windsurf, Continue.dev, VS Code, Copilot, Codex, Antigravity, and Aman Environment imports.
 
 ## Documentation (GitHub)
 
 | Document | Audience |
 |----------|----------|
 | [QUICK-START.md](./QUICK-START.md) | New users — zero to first asset in minutes |
+| [docs/IMPORT-GUIDE.md](./docs/IMPORT-GUIDE.md) | Import from Claude Code, VS Code, Copilot, Codex, and local folders |
 | [docs/ASSET-SPEC.md](./docs/ASSET-SPEC.md) | Publishers — canonical asset format |
 | [docs/REGISTRY-SPEC.md](./docs/REGISTRY-SPEC.md) | Contributors — registry contract |
 | [docs/LOCKFILE-SPEC.md](./docs/LOCKFILE-SPEC.md) | Developers — reproducible installs |

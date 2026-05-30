@@ -13,6 +13,10 @@ import { theme } from '../ui/theme.js';
 import { metadataParts, shortDescription, titleize } from '../ui/marketplaceDisplay.js';
 import { ASSET_TAB_ORDER, ASSET_TYPE_PLURAL } from '../ui/assetDisplay.js';
 import { TransitionScreen } from '../ui/animations/TransitionScreen.js';
+import { MarketplaceInstallConfirm } from '../ui/components/MarketplaceInstallConfirm.js';
+import { installFromCandidate } from '../marketplace/install-from-candidate.js';
+import { MARKETPLACE_ENABLED } from '../config/features.js';
+import { environmentService } from '../services/environment.service.js';
 
 interface InstallAppProps {
   name: string;
@@ -24,6 +28,50 @@ function scopeLabel(scope: Scope): string {
   return scope === 'project' ? 'project' : 'global';
 }
 
+function assertInstallEnvironment(scope: Scope): void {
+  if (!environmentService.isEnvironmentInitialized(scope)) {
+    console.error('\n  Aman Intelligence is not initialized yet.');
+    console.error(`  Run the following command to get started:\n`);
+    console.error(`  aman init --local\n`);
+    process.exit(1);
+  }
+}
+
+function assetLookupFailureMessage(name: string): string {
+  return MARKETPLACE_ENABLED
+    ? `Could not find "${name}" in marketplace or bundled assets`
+    : `Could not find "${name}" in registry or local assets`;
+}
+
+async function runHeadlessInstall(
+  name: string,
+  scope: Scope,
+  assetType?: AssetType
+): Promise<void> {
+  const candidate = await marketplaceService.findInstallCandidate(name);
+  if (candidate) {
+    const result = await installFromCandidate(candidate, scope);
+    console.log(
+      `Installed ${ASSET_TYPE_PLURAL[candidate.type].slice(0, -1)} ${titleize(candidate.name)} → ${result.path}`
+    );
+    return;
+  }
+
+  const types = assetType ? [assetType] : ASSET_TAB_ORDER;
+  for (const type of types) {
+    try {
+      await assetService.install(name, type, scope, undefined, 'local');
+      console.log(`Installed ${type} ${name} → ${scopeLabel(scope)}`);
+      return;
+    } catch {
+      // try next type
+    }
+  }
+
+  console.error(`Could not find or install "${name}".`);
+  process.exit(1);
+}
+
 const InstallApp: React.FC<InstallAppProps> = ({ name, initialScope, initialType }) => {
   const { exit } = useApp();
   const [scope, setScope] = useState<Scope | undefined>(initialScope);
@@ -31,6 +79,7 @@ const InstallApp: React.FC<InstallAppProps> = ({ name, initialScope, initialType
   const [candidate, setCandidate] = useState<InstallCandidate | null>(null);
   const [registryRef, setRegistryRef] = useState<{ slug: string; version: string } | null>(null);
   const [lookupDone, setLookupDone] = useState(false);
+  const [confirmDone, setConfirmDone] = useState(false);
   const [state, setState] = useState<NarratorState>('searching');
   const [message, setMessage] = useState(`Looking up ${name}...`);
 
@@ -74,7 +123,7 @@ const InstallApp: React.FC<InstallAppProps> = ({ name, initialScope, initialType
 
         if (!match) {
           setState('error');
-          setMessage(`Could not find "${name}" in marketplace or bundled assets`);
+          setMessage(assetLookupFailureMessage(name));
           setLookupDone(true);
           setTimeout(() => exit(), 1800);
           return;
@@ -130,39 +179,64 @@ const InstallApp: React.FC<InstallAppProps> = ({ name, initialScope, initialType
   }, [registryRef, exit, lookupDone, scope]);
 
   useEffect(() => {
-    if (!scope || !lookupDone || !candidate || registryRef) return;
+    if (!scope || !lookupDone || !candidate || registryRef || !confirmDone) return;
     const selectedScope = scope;
 
     async function doInstall() {
       try {
         setState('installing');
         setMessage(`Installing ${titleize(candidate!.name)}...`);
-        await assetService.install(
-          candidate!.name,
-          candidate!.type,
-          selectedScope,
-          candidate!.sourcePath,
-          candidate!.source
-        );
+        const result = await installFromCandidate(candidate!, selectedScope);
         setState('success');
         setMessage(
-          `Installed ${ASSET_TYPE_PLURAL[candidate!.type].slice(0, -1)} ${titleize(candidate!.name)} → ${scopeLabel(selectedScope)}`
+          `Installed ${ASSET_TYPE_PLURAL[candidate!.type].slice(0, -1)} ${titleize(candidate!.name)} → ${result.path}`
         );
         setTimeout(() => exit(), 800);
-      } catch (err: any) {
+      } catch (err: unknown) {
         setState('error');
-        setMessage(`Error: ${err.message}`);
+        setMessage(`Error: ${err instanceof Error ? err.message : String(err)}`);
         setTimeout(() => exit(), 1600);
       }
     }
 
     doInstall();
-  }, [candidate, exit, lookupDone, scope, name]);
+  }, [candidate, exit, lookupDone, scope, name, confirmDone]);
 
   if (!lookupDone) {
     return (
       <Box paddingX={1} flexDirection="column">
         <Narrator state="searching" message={message} />
+      </Box>
+    );
+  }
+
+  if (
+    !scope &&
+    state !== 'error' &&
+    candidate?.marketplaceAsset &&
+    lookupDone &&
+    !confirmDone
+  ) {
+    const gh = candidate.marketplaceAsset;
+    return (
+      <Box flexDirection="column" paddingX={1}>
+        <MarketplaceInstallConfirm
+          details={{
+            name: gh.localName,
+            type: gh.type,
+            slug: gh.slug,
+            author: gh.author,
+            version: gh.version,
+            source: gh.source,
+            checksum: gh.checksum,
+            verified: gh.verified,
+          }}
+          onConfirm={(s) => {
+            setConfirmDone(true);
+            setScope(s);
+          }}
+          onCancel={() => exit()}
+        />
       </Box>
     );
   }
@@ -179,7 +253,10 @@ const InstallApp: React.FC<InstallAppProps> = ({ name, initialScope, initialType
           <Text color={theme.dim}>{shortDescription(candidate.description)}</Text>
         )}
         <Box marginTop={1}>
-          <ScopePrompt onSelect={(s) => setScope(s)} />
+          <ScopePrompt onSelect={(s) => {
+            setConfirmDone(true);
+            setScope(s);
+          }} />
         </Box>
       </Box>
     );
@@ -203,7 +280,9 @@ export const InstallWizardApp = ({ onBack }: { onBack?: () => void }) => {
 
   const [step, setStep] = useState<WizardStep>('type');
   const [assetType, setAssetType] = useState<AssetType>(ASSET_TAB_ORDER[0]);
-  const [source, setSource] = useState<'marketplace' | 'local' | 'github'>('marketplace');
+  const [source, setSource] = useState<'marketplace' | 'local' | 'github'>(
+    MARKETPLACE_ENABLED ? 'marketplace' : 'local'
+  );
   const [name, setName] = useState('');
   const [scope, setScope] = useState<Scope | undefined>();
   const [state, setState] = useState<NarratorState>('idle');
@@ -223,13 +302,7 @@ export const InstallWizardApp = ({ onBack }: { onBack?: () => void }) => {
         if (source === 'marketplace') {
           const candidate = await marketplaceService.findInstallCandidate(name);
           if (!candidate) throw new Error(`"${name}" not found in marketplace`);
-          await assetService.install(
-            candidate.name,
-            candidate.type,
-            scope!,
-            candidate.sourcePath,
-            candidate.source
-          );
+          await installFromCandidate(candidate, scope!);
         } else {
           await assetService.install(name, assetType, scope!, undefined, source);
         }
@@ -278,11 +351,18 @@ export const InstallWizardApp = ({ onBack }: { onBack?: () => void }) => {
         <Text color={theme.dim}>Source</Text>
         <Box marginTop={1}>
           <CustomSelectInput
-            items={[
-              { label: '❯ Marketplace', value: 'marketplace' },
-              { label: '  Local / Bundled', value: 'local' },
-              { label: '  GitHub', value: 'github' },
-            ]}
+            items={
+              MARKETPLACE_ENABLED
+                ? [
+                    { label: '❯ Marketplace', value: 'marketplace' },
+                    { label: '  Local / Registry', value: 'local' },
+                    { label: '  GitHub', value: 'github' },
+                  ]
+                : [
+                    { label: '❯ Registry / Local', value: 'local' },
+                    { label: '  GitHub', value: 'github' },
+                  ]
+            }
             onSelect={(item) => {
               setSource(item.value as 'marketplace' | 'local' | 'github');
               setStep('name');
@@ -349,11 +429,8 @@ export async function installCommand(args: string[], options: { project?: boolea
       : options.global || options.g
         ? 'global'
         : undefined;
-    if (!scope && !process.stdin.isTTY) {
-      scope = 'project';
-    }
     if (!scope) {
-      if (!process.stdin.isTTY) {
+      if (!process.stdin.isTTY || !process.stdout.isTTY) {
         console.error('Registry install requires --global or --project when not interactive.');
         process.exit(1);
       }
@@ -365,6 +442,7 @@ export async function installCommand(args: string[], options: { project?: boolea
       await waitUntilExit();
       return;
     }
+    assertInstallEnvironment(scope);
     const result = await registryService.installFromRegistry(registryRef.slug, registryRef.version, scope);
     for (const warning of result.warnings) {
       console.warn(warning);
@@ -393,8 +471,21 @@ export async function installCommand(args: string[], options: { project?: boolea
     return;
   }
 
-  if (!process.stdin.isTTY && !initialScope) {
-    initialScope = 'project';
+  if (!process.stdin.isTTY || !process.stdout.isTTY) {
+    if (!initialScope) {
+      console.error(
+        'Install requires --global or --project when not interactive.\n' +
+          'Example: aman install my-skill --global'
+      );
+      process.exit(1);
+    }
+    assertInstallEnvironment(initialScope);
+    await runHeadlessInstall(name, initialScope, initialType);
+    return;
+  }
+
+  if (initialScope) {
+    assertInstallEnvironment(initialScope);
   }
 
   const { waitUntilExit } = render(

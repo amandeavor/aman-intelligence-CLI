@@ -15,6 +15,16 @@ import { removeDir, isPathSafe } from '../storage/filesystem.js';
 import path from 'path';
 import { ProgressBar } from '../ui/animations/ProgressBar.js';
 import { TransitionScreen } from '../ui/animations/TransitionScreen.js';
+import { ImportWizardApp } from './import-wizard.js';
+import { importDiscoveryService } from '../import/discovery.service.js';
+import {
+  applyAutoRenameConflicts,
+  detectImportConflicts,
+  executeImportPlan,
+  isGithubDestinationAvailable,
+} from '../import/import.service.js';
+import { ImportSourceId } from '../import/types.js';
+import { environmentService } from '../services/environment.service.js';
 
 type ImportMode = 'cloning' | 'scanning' | 'preview' | 'review' | 'scope' | 'installing' | 'done';
 
@@ -294,20 +304,106 @@ export const ImportApp: React.FC<ImportAppProps> = ({ source, initialScope, onBa
 
 export async function importCommand(args: string[], options: any) {
   const source = args[0];
-  if (!source) {
-    console.log('  Usage: aman import <source>');
-    console.log('  Examples:');
-    console.log('    aman import user/repo');
-    console.log('    aman import ./local-folder');
-    console.log('    aman import https://github.com/user/repo');
-    return;
-  }
+  let fromSource = options.from as ImportSourceId | undefined;
+  const useGithubDest = Boolean(options.githubDest || options.github);
+  const importAll = Boolean(options.all);
+  const skipConfirm = Boolean(options.yes || options.y);
 
   const initialScope: Scope | undefined = options.project || options.p
     ? 'project'
     : options.global || options.g
       ? 'global'
       : undefined;
+
+  // Shorthand: `aman import cursor --global` → `aman import --from cursor --global`
+  const KNOWN_SOURCE_IDS = new Set<string>([
+    'claude-code', 'cursor', 'windsurf', 'continue',
+    'vscode', 'github-copilot', 'codex',
+    'local-folder', 'custom-path', 'aman-environment',
+    'antigravity',
+  ]);
+
+  if (source && KNOWN_SOURCE_IDS.has(source) && !fromSource) {
+    fromSource = source as ImportSourceId;
+  }
+
+  // Interactive wizard when no source path and no --from
+  if (!source && !fromSource) {
+    if (!process.stdin.isTTY) {
+      console.error('\n  Error: Interactive import wizard requires a TTY.');
+      console.error('  Use: aman import <path> --global|--project');
+      console.error('  Or:  aman import claude-code --all --global\n');
+      process.exit(1);
+    }
+    const { waitUntilExit } = render(<ImportWizardApp />);
+    await waitUntilExit();
+    return;
+  }
+
+  // Adapter-based headless / flagged import
+  if (fromSource) {
+    if (!initialScope) {
+      console.error('Import requires --global or --project when using --from.');
+      process.exit(1);
+    }
+    if (useGithubDest && !isGithubDestinationAvailable()) {
+      console.error('\n  GitHub is not configured.');
+      console.error('  Run `aman init --github` or connect GitHub first.\n');
+      process.exit(1);
+    }
+    if (!environmentService.isEnvironmentInitialized(initialScope)) {
+      console.error('\n  Aman Intelligence is not initialized yet.');
+      console.error('  Run: aman init --local\n');
+      process.exit(1);
+    }
+
+    try {
+      // When using shorthand (aman import cursor ./path), the path is args[1]
+      // When using --from (aman import ./path --from cursor), the path is args[0]
+      const rootPath = (source && KNOWN_SOURCE_IDS.has(source)) ? args[1] : source;
+      console.log(`\n  ◌ Scanning ${fromSource}...`);
+      const discovered = await importDiscoveryService.scan(fromSource, rootPath ? { rootPath } : undefined);
+      if (discovered.length === 0) {
+        console.log('  No recognizable assets found. Nothing imported.');
+        return;
+      }
+      const items = importAll
+        ? discovered
+        : discovered.filter((d) => d.confidence >= 50 && d.canonicalStatus !== 'ambiguous');
+      if (items.length === 0) {
+        console.log('  No high-confidence assets to import. Use --all to include ambiguous items.');
+        return;
+      }
+      let conflicts = await detectImportConflicts(items, initialScope);
+      conflicts = applyAutoRenameConflicts(conflicts, skipConfirm ? 'suffix' : 'suffix');
+      const plan = {
+        sourceId: fromSource,
+        sourceLabel: fromSource,
+        destination: useGithubDest ? ('github' as const) : ('local' as const),
+        scope: initialScope,
+        items,
+        conflicts,
+      };
+      console.log(`  Found ${items.length} assets to import → ${initialScope}`);
+      const result = await executeImportPlan(plan);
+      console.log(`  ✓ Imported ${result.imported} (skipped ${result.skipped}, renamed ${result.renamed})\n`);
+    } catch (err: unknown) {
+      console.error(`  ✗ Import failed: ${err instanceof Error ? err.message : String(err)}\n`);
+      process.exit(1);
+    }
+    return;
+  }
+
+  if (!source) {
+    console.log('  Usage: aman import [source] [options]');
+    console.log('  Examples:');
+    console.log('    aman import                              # interactive wizard (TTY)');
+    console.log('    aman import cursor --global              # shorthand: import from Cursor');
+    console.log('    aman import claude-code --all -g         # import all from Claude Code');
+    console.log('    aman import ./local-folder --global');
+    console.log('    aman import user/repo --global');
+    return;
+  }
 
   if (!process.stdin.isTTY) {
     if (!initialScope) {

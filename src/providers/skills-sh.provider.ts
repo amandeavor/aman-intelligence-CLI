@@ -1,16 +1,25 @@
 import Fuse from 'fuse.js';
 import { AssetProvider } from './provider.interface.js';
-import { AssetType, ProviderResult } from '../types/index.js';
+import { AssetType, ProviderResult, Skill } from '../types/index.js';
 import { BUNDLED_SKILLS } from '../config/paths.js';
 import { scanSkills } from '../storage/scanner.js';
 
 export class SkillsShProvider implements AssetProvider {
   name = 'skills.sh';
 
+  private bundledSkillsCache: Skill[] | null = null;
+
+  private async getBundledSkills(): Promise<Skill[]> {
+    if (!this.bundledSkillsCache) {
+      this.bundledSkillsCache = await scanSkills(BUNDLED_SKILLS, this.name);
+    }
+    return this.bundledSkillsCache;
+  }
+
   async search(query: string, type?: AssetType): Promise<ProviderResult[]> {
     if (type && type !== 'skill') return [];
 
-    const skills = await scanSkills(BUNDLED_SKILLS, this.name);
+    const skills = await this.getBundledSkills();
     const results = skills.map((skill) => ({
       type: 'skill' as const,
       name: skill.name,
@@ -43,7 +52,7 @@ export class SkillsShProvider implements AssetProvider {
       throw new Error('skills.sh currently provides skills only.');
     }
 
-    const skills = await scanSkills(BUNDLED_SKILLS, this.name);
+    const skills = await this.getBundledSkills();
     const skill = skills.find((item) => item.name === name);
     if (!skill) {
       throw new Error(`Skill not found on skills.sh: ${name}`);

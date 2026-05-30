@@ -10,6 +10,7 @@ import { theme } from '../ui/theme.js';
 import { titleize } from '../ui/marketplaceDisplay.js';
 import { Spinner } from '../ui/animations/Spinner.js';
 import { TransitionScreen } from '../ui/animations/TransitionScreen.js';
+import { installFromCandidate } from '../marketplace/install-from-candidate.js';
 
 interface UpdateAppProps {
   names: string[];
@@ -109,6 +110,39 @@ export async function updateCommand(args: string[], options: any = {}) {
       console.log(`  No installed items in ${scope}.`);
       return;
     }
+  }
+
+  if (!process.stdin.isTTY || !process.stdout.isTTY) {
+    let passed = 0;
+    let failed = 0;
+    for (const name of names) {
+      const candidate = await marketplaceService.findInstallCandidate(name);
+      if (!candidate) {
+        console.log(`  ✗ ${titleize(name)} (not found)`);
+        failed++;
+        continue;
+      }
+      try {
+        if (candidate.marketplaceAsset) {
+          await installFromCandidate(candidate, scope);
+        } else {
+          await assetService.install(
+            candidate.name,
+            candidate.type,
+            scope,
+            candidate.sourcePath,
+            candidate.source
+          );
+        }
+        console.log(`  ✓ ${titleize(name)}`);
+        passed++;
+      } catch {
+        console.log(`  ✗ ${titleize(name)}`);
+        failed++;
+      }
+    }
+    console.log(`\n  Updated ${passed}${failed > 0 ? `, failed ${failed}` : ''}\n`);
+    return;
   }
 
   console.log(`  Updating ${names.length} item${names.length !== 1 ? 's' : ''}...\n`);

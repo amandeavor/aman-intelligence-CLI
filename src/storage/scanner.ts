@@ -1,6 +1,6 @@
 import path from 'path';
 import { promises as fs } from 'fs';
-import { exists, listDirs, readFrontmatter, readJson } from './filesystem.js';
+import { exists, listDirs, listFiles, readFrontmatter, readJson } from './filesystem.js';
 import { Skill, Prompt, McpConfig, Stack } from '../types/index.js';
 import { normalizeStack } from '../utils/stack-normalize.js';
 import {
@@ -78,14 +78,18 @@ export async function scanSkills(dir: string, source: string = 'local'): Promise
     if (hasMd) {
       const frontmatter = await readFrontmatter(mdPath);
       if (frontmatter) {
-        description = frontmatter.description;
+        if (typeof frontmatter.description === 'string') description = frontmatter.description;
         tags = stringArray(frontmatter.tags);
-        version = frontmatter.metadata?.version;
-        organization = frontmatter.metadata?.author;
+        const meta = frontmatter.metadata;
+        if (meta && typeof meta === 'object' && !Array.isArray(meta)) {
+          const metaObj = meta as Record<string, unknown>;
+          if (typeof metaObj.version === 'string') version = metaObj.version;
+          if (typeof metaObj.author === 'string') organization = metaObj.author;
+        }
       }
     }
 
-    const metadata = await readJson<SkillMetadataFile>(metadataPath);
+    const metadata = await readJson<SkillMetadataFile & Record<string, unknown>>(metadataPath);
     if (metadata) {
       description = description || metadata.abstract;
       tags = tags || stringArray(metadata.tags);
@@ -96,11 +100,9 @@ export async function scanSkills(dir: string, source: string = 'local'): Promise
       version = version || metadata.version;
       organization = organization || metadata.organization;
       originalName = metadata.originalName;
+      if (typeof metadata.slug === 'string') slug = metadata.slug;
+      if (typeof metadata.id === 'string') id = metadata.id;
     }
-
-    const unified = await readJson<Record<string, unknown>>(metadataPath);
-    if (unified?.slug && typeof unified.slug === 'string') slug = unified.slug;
-    if (unified?.id && typeof unified.id === 'string') id = unified.id;
 
     return {
       name,
@@ -200,7 +202,6 @@ export async function scanMcps(dir: string, source: string = 'local'): Promise<M
 export async function scanStacks(dir: string, source: string = 'local'): Promise<Stack[]> {
   if (!exists(dir)) return [];
 
-  const { listFiles } = await import('./filesystem.js');
   const stackFiles = await listFiles(dir, '.json');
 
   const stacks = await boundedMap(stackFiles, SCAN_CONCURRENCY, async (file) => {
@@ -215,10 +216,11 @@ export async function scanStacks(dir: string, source: string = 'local'): Promise
 }
 
 export async function scanAll(dir: string, source: string = 'local') {
-  return {
-    skills: await scanSkills(path.join(dir, 'skills'), source),
-    prompts: await scanPrompts(path.join(dir, 'prompts'), source),
-    mcps: await scanMcps(path.join(dir, 'mcps'), source),
-    stacks: await scanStacks(path.join(dir, 'stacks'), source),
-  };
+  const [skills, prompts, mcps, stacks] = await Promise.all([
+    scanSkills(path.join(dir, 'skills'), source),
+    scanPrompts(path.join(dir, 'prompts'), source),
+    scanMcps(path.join(dir, 'mcps'), source),
+    scanStacks(path.join(dir, 'stacks'), source),
+  ]);
+  return { skills, prompts, mcps, stacks };
 }

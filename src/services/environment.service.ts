@@ -58,6 +58,12 @@ export class EnvironmentService {
     return path.resolve(process.cwd(), LOCAL_DIR);
   }
 
+  isEnvironmentInitialized(scope: 'global' | 'project' = 'global'): boolean {
+    const base =
+      scope === 'project' ? this.getProjectEnvironmentDir() : this.getActiveEnvironmentDir();
+    return exists(path.join(base, 'aman.json'));
+  }
+
   resolveStoragePath(storagePath?: string): string {
     return path.resolve(expandHome(storagePath || GLOBAL_DIR));
   }

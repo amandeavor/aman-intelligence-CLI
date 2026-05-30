@@ -22,6 +22,7 @@ import { initCommand } from '../commands/init.js';
 import { syncCommand } from '../commands/sync.js';
 import { infoCommand } from '../commands/info.js';
 import { registryCommand } from '../commands/registry.js';
+import { cacheCommand } from '../commands/cache.js';
 
 const preArgs = process.argv.slice(2);
 if (preArgs.includes('--version') || preArgs.includes('-v') || preArgs[0] === 'version') {
@@ -76,6 +77,9 @@ const cli = meow(
       all: { type: 'boolean' },
       version: { type: 'boolean', shortFlag: 'v' },
       yes: { type: 'boolean', shortFlag: 'y' },
+      noTty: { type: 'boolean' },
+      from: { type: 'string' },
+      githubDest: { type: 'boolean' },
     },
   }
 );
@@ -104,7 +108,10 @@ async function main() {
       await browseCommand(args, options);
       break;
     case 'search':
-      await searchCommand(args);
+      await searchCommand(args, options);
+      break;
+    case 'cache':
+      await cacheCommand(args);
       break;
     case 'install':
       await installCommand(args, options);

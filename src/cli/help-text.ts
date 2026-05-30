@@ -1,6 +1,15 @@
 import { CLI_VERSION } from './version.js';
+import { MARKETPLACE_ENABLED } from '../config/features.js';
 
 export function printHelpText(): void {
+  const cacheSection = MARKETPLACE_ENABLED
+    ? `  cache <cmd>         Marketplace cache status or clear
+
+Cache:
+  cache status        Show marketplace cache size and age
+  cache clear         Clear marketplace discovery cache`
+    : `  cache <cmd>         Discovery cache (coming in a future release)`;
+
   console.log(`aman ${CLI_VERSION} — package manager for AI workflow assets
 
 Install globally (one command):
@@ -18,7 +27,10 @@ Commands:
   install [ref]       Install asset or @scope/name@version from registry
   remove <name>       Remove an installed asset
   update [name]       Update installed assets
-  import <source>     Import from GitHub URL, repo, or local folder
+  import <source>     Import from GitHub URL, repo, local folder, or AI tool
+                    Sources: claude-code, cursor, windsurf, continue,
+                      vscode, github-copilot, codex, local-folder,
+                      custom-path, aman-environment, antigravity
   export [name]       Export assets (--all, --type skill|prompt|mcp)
   pack <cmd>          Create, inspect, or install packs
   stack <cmd>         Manage workflow stacks
@@ -27,6 +39,7 @@ Commands:
   doctor              Check environment health
   config <cmd>        Manage CLI settings
   registry <cmd>      Publish and query the canonical asset registry
+  ${cacheSection}
   help                Show this help
 
 Registry:
@@ -46,6 +59,6 @@ Environment:
   AMAN_REGISTRY_BACKEND   Registry adapter: local (default) or github
 
 Documentation:
-  https://github.com/aman-intelligence/aman-cli#readme
+  https://github.com/amandeavor/aman-intelligence-CLI#readme
 `);
 }

@@ -451,7 +451,11 @@ export async function packCommand(args: string[], options: any) {
         : undefined;
 
     if (!process.stdin.isTTY && !scope) {
-      scope = 'project';
+      console.error(
+        'Pack install requires --global or --project when not interactive.\n' +
+          'Example: aman pack install ./bundle.amanpack --global'
+      );
+      process.exit(1);
     }
 
     if (!process.stdin.isTTY) {

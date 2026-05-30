@@ -1,6 +1,16 @@
 import { AssetProvider } from './provider.interface.js';
 import { AssetType, ProviderResult } from '../types/index.js';
 import { assetService } from '../services/asset.service.js';
+import {
+  assetListCategory,
+  assetListDescription,
+  assetListInstalls,
+  assetListOrganization,
+  assetListRating,
+  assetListTags,
+  assetListUpdated,
+  assetListVersion,
+} from '../utils/asset-list-fields.js';
 import Fuse from 'fuse.js';
 
 export class LocalProvider implements AssetProvider {
@@ -18,14 +28,14 @@ export class LocalProvider implements AssetProvider {
           name: item.name,
           source: item.source || this.name,
           sources: [item.source || this.name],
-          description: item.description,
-          tags: item.tags,
-          category: item.category,
-          installs: item.installs,
-          rating: item.rating,
-          updated: item.updated,
-          version: item.version,
-          organization: item.organization,
+          description: assetListDescription(item),
+          tags: assetListTags(item),
+          category: assetListCategory(item),
+          installs: assetListInstalls(item),
+          rating: assetListRating(item),
+          updated: assetListUpdated(item),
+          version: assetListVersion(item),
+          organization: assetListOrganization(item),
           installed: item.source === 'installed',
           confidence: 1.0,
         });

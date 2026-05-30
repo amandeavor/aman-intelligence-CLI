@@ -52,6 +52,9 @@ export interface McpConfig {
   id?: string;
 }
 
+/** Union of scan/list fields used across skills, prompts, and MCPs. */
+export type AssetListItem = Skill | Prompt | McpConfig;
+
 export interface StackMemberRef {
   localName: string;
   slug: string;
@@ -218,6 +221,16 @@ export interface ProviderResult {
   installed?: boolean;
   confidence: number;
   slug?: string;
+  /** GitHub repo stars (marketplace assets only). */
+  stars?: number;
+  /** CLI-enforced: true only for @aman/ namespace. */
+  verified?: boolean;
+  /** UI grouping: local providers vs GitHub topic marketplace. */
+  section?: 'local' | 'marketplace';
+  /** Expected content checksum from publisher metadata. */
+  checksum?: string;
+  /** github:owner/repo */
+  githubSource?: string;
 }
 
 export interface HealthCheck {

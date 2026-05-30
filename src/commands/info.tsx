@@ -10,6 +10,12 @@ import { NarratorState, ProviderResult, Scope, AssetType } from '../types/index.
 import { theme } from '../ui/theme.js';
 import { metadataParts, titleize } from '../ui/marketplaceDisplay.js';
 import { assetTypeBadge, ASSET_TYPES } from '../ui/assetDisplay.js';
+import {
+  assetListDescription,
+  assetListOrganization,
+  assetListTags,
+  assetListVersion,
+} from '../utils/asset-list-fields.js';
 
 type InfoMode = 'loading' | 'detail' | 'scope' | 'installing' | 'done';
 
@@ -33,10 +39,10 @@ async function findAssetByName(name: string): Promise<ProviderResult | null> {
           type,
           name: match.name,
           source: match.source || scope,
-          description: match.description,
-          tags: match.tags,
-          version: match.version,
-          organization: match.organization,
+          description: assetListDescription(match),
+          tags: assetListTags(match),
+          version: assetListVersion(match),
+          organization: assetListOrganization(match),
           installed: true,
           confidence: 1,
           slug: match.slug,
@@ -216,7 +222,24 @@ export async function infoCommand(args: string[]) {
   const name = args.join(' ');
   if (!name) {
     console.log('  Usage: aman info <name>');
-    console.log('  Works for skills, prompts, and MCPs (installed or marketplace).');
+    console.log('  Works for skills, prompts, and MCPs (installed or registry catalog).');
+    return;
+  }
+
+  if (!process.stdin.isTTY || !process.stdout.isTTY) {
+    const item = await findAssetByName(name);
+    if (!item) {
+      console.error(`  No asset found for "${name}".`);
+      process.exit(1);
+    }
+    console.log(`\n  ${assetTypeBadge(item.type)} ${titleize(item.name)}`);
+    if (item.description) console.log(`  ${item.description}`);
+    for (const part of metadataParts(item)) {
+      console.log(`  ${part}`);
+    }
+    if (item.tags?.length) console.log(`  Tags: ${item.tags.join(', ')}`);
+    if (item.installed) console.log('  Status: installed');
+    console.log('');
     return;
   }
 

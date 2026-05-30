@@ -5,6 +5,7 @@ import { Confirm } from '../ui/components/Confirm.js';
 import { Narrator } from '../ui/components/Narrator.js';
 import { AssetType, NarratorState, Scope } from '../types/index.js';
 import { titleize } from '../ui/marketplaceDisplay.js';
+import { ASSET_TAB_ORDER } from '../ui/assetDisplay.js';
 
 interface RemoveAppProps {
   name: string;
@@ -82,8 +83,19 @@ export async function removeCommand(args: string[], options: any) {
   const scope: Scope = options.project || options.p ? 'project' : 'global';
   let skipConfirm = Boolean(options.yes || options.y);
 
-  if (!process.stdin.isTTY && !skipConfirm) {
-    skipConfirm = true;
+  if (!process.stdin.isTTY || !process.stdout.isTTY) {
+    let removed = false;
+    for (const type of ASSET_TAB_ORDER) {
+      if (await assetService.remove(name, type, scope)) {
+        removed = true;
+      }
+    }
+    if (removed) {
+      console.log(`Removed ${titleize(name)} from ${scope === 'project' ? 'project' : 'global'}`);
+      return;
+    }
+    console.error(`Could not find ${titleize(name)} in ${scope === 'project' ? 'project' : 'global'}`);
+    process.exit(1);
   }
 
   const { waitUntilExit } = render(<RemoveApp name={name} scope={scope} skipConfirm={skipConfirm} />);

@@ -4,6 +4,22 @@ import { localProvider } from '../providers/local.provider.js';
 import { registryProvider } from '../providers/registry.provider.js';
 import { AssetType, ProviderResult } from '../types/index.js';
 import { ASSET_TAB_ORDER } from '../ui/assetDisplay.js';
+import {
+  findMarketplaceAsset,
+  indexMarketplaceAssets,
+  loadMarketplaceIndex,
+  searchGitHubMarketplace,
+} from '../marketplace/github-search.js';
+import { MarketplaceAsset, MarketplaceSearchResult } from '../marketplace/types.js';
+import { MARKETPLACE_ENABLED } from '../config/features.js';
+
+const EMPTY_MARKETPLACE_RESULT: MarketplaceSearchResult = {
+  assets: [],
+  fromCache: false,
+  cacheAgeMinutes: null,
+  rateLimited: false,
+  offline: false,
+};
 
 export interface InstallCandidate {
   name: string;
@@ -20,6 +36,11 @@ export interface InstallCandidate {
   version?: string;
   organization?: string;
   installed?: boolean;
+  slug?: string;
+  checksum?: string;
+  verified?: boolean;
+  githubSource?: string;
+  marketplaceAsset?: MarketplaceAsset;
 }
 
 export class MarketplaceService {
@@ -30,18 +51,98 @@ export class MarketplaceService {
   }
 
   async search(query: string, type?: AssetType): Promise<ProviderResult[]> {
-    const allResults: ProviderResult[] = [];
+    const localResults: ProviderResult[] = [];
 
     for (const provider of this.providers) {
       if (!(await provider.available())) continue;
       const results = await provider.search(query, type);
-      allResults.push(...results);
+      for (const r of results) {
+        localResults.push({ ...r, section: 'local' });
+      }
     }
 
-    return this.mergeResults(allResults);
+    const mergedLocal = this.mergeResults(localResults);
+
+    if (!MARKETPLACE_ENABLED) {
+      return mergedLocal;
+    }
+
+    const gh = await searchGitHubMarketplace({
+      query,
+      typeFilter: type ?? 'all',
+    });
+    indexMarketplaceAssets(gh.assets);
+
+    let marketplace = gh.assets.map((a) => this.marketplaceAssetToResult(a));
+    if (type) {
+      marketplace = marketplace.filter((r) => r.type === type);
+    }
+
+    return [...mergedLocal, ...marketplace];
+  }
+
+  async searchGitHubMarketplace(_query: string, _type?: AssetType): Promise<MarketplaceSearchResult> {
+    if (!MARKETPLACE_ENABLED) return { ...EMPTY_MARKETPLACE_RESULT };
+    return searchGitHubMarketplace({ query: _query, typeFilter: _type ?? 'all' });
+  }
+
+  async loadGitHubMarketplaceCatalog(options?: {
+    query?: string;
+    typeFilter?: 'all' | AssetType;
+  }): Promise<MarketplaceSearchResult> {
+    if (!MARKETPLACE_ENABLED) return { ...EMPTY_MARKETPLACE_RESULT };
+    return loadMarketplaceIndex({
+      query: options?.query ?? '',
+      typeFilter: options?.typeFilter ?? 'all',
+    });
+  }
+
+  private marketplaceAssetToResult(asset: MarketplaceAsset): ProviderResult {
+    return {
+      type: asset.type,
+      name: asset.localName,
+      slug: asset.slug,
+      source: 'Marketplace',
+      sources: ['marketplace'],
+      description: asset.description,
+      tags: asset.tags,
+      version: asset.version,
+      organization: asset.author,
+      stars: asset.stars,
+      verified: asset.verified,
+      section: 'marketplace',
+      checksum: asset.checksum,
+      githubSource: asset.source,
+      confidence: 0.95,
+      installed: false,
+    };
   }
 
   async findInstallCandidate(name: string): Promise<InstallCandidate | null> {
+    const trimmed = name.trim();
+    if (MARKETPLACE_ENABLED && trimmed.startsWith('@')) {
+      await loadMarketplaceIndex({ query: '' });
+      const gh = findMarketplaceAsset(trimmed);
+      if (gh) {
+        return {
+          name: gh.localName,
+          type: gh.type,
+          source: 'marketplace',
+          sources: ['marketplace'],
+          sourcePath: '',
+          description: gh.description,
+          tags: gh.tags,
+          version: gh.version,
+          organization: gh.author,
+          slug: gh.slug,
+          checksum: gh.checksum,
+          verified: gh.verified,
+          githubSource: gh.source,
+          marketplaceAsset: gh,
+        };
+      }
+    }
+
     const types: AssetType[] = ASSET_TAB_ORDER;
     const requestedName = this.normalizeName(name);
 
@@ -56,6 +157,31 @@ export class MarketplaceService {
         const providerMatches = await provider.search(exact.name, type);
         const providerExact = providerMatches.find((item) => this.normalizeName(item.name) === this.normalizeName(exact.name));
         if (!providerExact) continue;
+
+        if (exact.section === 'marketplace') {
+          await loadMarketplaceIndex({ query: '' });
+          const gh =
+            findMarketplaceAsset(exact.slug ?? exact.name) ??
+            findMarketplaceAsset(exact.name);
+          if (gh) {
+            return {
+              name: gh.localName,
+              type: gh.type,
+              source: 'marketplace',
+              sources: ['marketplace'],
+              sourcePath: '',
+              description: gh.description,
+              tags: gh.tags,
+              version: gh.version,
+              organization: gh.author,
+              slug: gh.slug,
+              checksum: gh.checksum,
+              verified: gh.verified,
+              githubSource: gh.source,
+              marketplaceAsset: gh,
+            };
+          }
+        }
 
         return {
           name: exact.name,
@@ -72,6 +198,10 @@ export class MarketplaceService {
           version: exact.version,
           organization: exact.organization,
           installed: exact.installed,
+          slug: exact.slug,
+          checksum: exact.checksum,
+          verified: exact.verified,
+          githubSource: exact.githubSource,
         };
       }
     }

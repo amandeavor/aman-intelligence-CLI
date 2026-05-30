@@ -43,10 +43,6 @@ export function groupResultsByType<T extends { type: AssetType }>(
   return grouped;
 }
 
-export function formatGroupedCount(summary: { skills: number; prompts: number; mcps: number }): string {
-  return `MCPs: ${summary.mcps} · Prompts: ${summary.prompts} · Skills: ${summary.skills}`;
-}
-
 export function averageConfidence(results: { confidence: number }[]): number {
   if (results.length === 0) return 0;
   const sum = results.reduce((acc, r) => acc + r.confidence, 0);

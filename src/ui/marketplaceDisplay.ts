@@ -35,11 +35,8 @@ export function metadataParts(item: MarketplaceLike): string[] {
   return parts;
 }
 
-import { AssetType } from '../types/index.js';
-import { assetTypeBadge } from './assetDisplay.js';
-
-export function labeledName(name: string, type: AssetType): string {
-  return `${assetTypeBadge(type)} ${titleize(name)}`;
+export function verifiedBadge(verified?: boolean): string {
+  return verified ? ' ✓ Aman' : '';
 }
 
 export function shortDescription(description?: string, maxLength = 120): string | undefined {

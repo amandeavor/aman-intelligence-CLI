@@ -25,9 +25,11 @@ import { SyncApp } from './sync.js';
 import { ConfigApp } from './config.js';
 import { DoctorApp } from './doctor.js';
 import { ImportApp } from './import.js';
+import { ImportWizardApp } from './import-wizard.js';
 import { InitFlow } from './init.js';
 import { InstallWizardApp } from './install.js';
 import { execFileSync } from 'child_process';
+import { MARKETPLACE_ENABLED } from '../config/features.js';
 import path from 'path';
 
 type Screen =
@@ -64,11 +66,16 @@ type Screen =
   | 'sync_pull_app'
   | 'settings'
   | 'doctor'
+  | 'import_menu'
+  | 'import_wizard'
   | 'import_repo_input'
   | 'import_app'
   | 'github_setup_loading'
   | 'connect_github'
-  | 'gh_cli_required';
+  | 'gh_cli_required'
+  | 'change_local_folder_input'
+  | 'change_repo_input'
+  | 'change_repo_mode';
 
 const InputScreen = ({
   title,
@@ -150,8 +157,8 @@ const DashboardApp = () => {
 
   const currentMenuItems = React.useMemo<MenuItem[]>(() => {
     const items: MenuItem[] = [
-      { label: 'Browse Assets', value: 'browse', section: 'Discover', description: 'Explore marketplace — skills, prompts, and MCPs' },
-      { label: 'Import Assets', value: 'import_repo_input', section: 'Discover', description: 'Import skills, prompts, and MCPs from GitHub or local paths' },
+      { label: 'Browse Assets', value: 'browse', section: 'Discover', description: 'Browse registry and installed skills, prompts, and MCPs' },
+      { label: 'Import Assets', value: 'import_menu', section: 'Discover', description: 'Import skills, prompts, and MCPs from AI tools, editors, GitHub, or folders' },
       { label: 'Search Assets', value: 'search', section: 'Discover', description: 'Universal search across all asset types' },
       { label: 'Install Asset', value: 'install', section: 'Discover', description: 'Install a skill, prompt, or MCP (equal asset types)' },
 
@@ -161,9 +168,15 @@ const DashboardApp = () => {
     ];
 
     if (!isConnected) {
-      items.push({ label: 'Connect GitHub', value: 'connect_github', section: 'Environment', description: 'Link your environment to a GitHub repository' });
+      items.push(
+        { label: 'Connect GitHub', value: 'connect_github', section: 'Environment', description: 'Link your environment to a GitHub repository' },
+        { label: 'Change Local Folder', value: 'change_local_folder_input', section: 'Environment', description: 'Change the directory path where local assets are stored' }
+      );
     } else {
-      items.push({ label: 'Sync Environment', value: 'sync_menu', section: 'Environment', description: 'Push or pull environment configurations with GitHub' });
+      items.push(
+        { label: 'Sync Environment', value: 'sync_menu', section: 'Environment', description: 'Push, pull, or manage your GitHub environment settings' },
+        { label: 'Change Local Folder', value: 'change_local_folder_input', section: 'Environment', description: 'Change the directory path where local assets are stored' }
+      );
     }
 
     items.push(
@@ -202,6 +215,49 @@ const DashboardApp = () => {
     }
   }
 
+  async function changeLocalFolder(targetPath: string) {
+    setScreen('github_setup_loading');
+    setSetupState('installing');
+    setSetupMessage(`Configuring local folder: ${targetPath}...`);
+    try {
+      await environmentService.initLocal({ storagePath: targetPath });
+      setSetupState('success');
+      setSetupMessage(`Environment directory changed successfully!`);
+      setInitRequired(false);
+      setTimeout(() => {
+        setScreen('menu');
+        loadData();
+      }, 1500);
+    } catch (err: any) {
+      setSetupState('error');
+      setSetupMessage(`Failed: ${err.message}`);
+      setTimeout(() => {
+        setScreen('menu');
+      }, 2500);
+    }
+  }
+
+  async function logoutGithub() {
+    setScreen('github_setup_loading');
+    setSetupState('installing');
+    setSetupMessage('Disconnecting from GitHub...');
+    try {
+      await environmentService.initLocal({});
+      setSetupState('success');
+      setSetupMessage('Logged out of GitHub! Storage switched to local.');
+      setTimeout(() => {
+        setScreen('menu');
+        loadData();
+      }, 1500);
+    } catch (err: any) {
+      setSetupState('error');
+      setSetupMessage(`Failed to log out: ${err.message}`);
+      setTimeout(() => {
+        setScreen('menu');
+      }, 2500);
+    }
+  }
+
   async function configureLocal() {
     setScreen('github_setup_loading');
     setSetupState('installing');
@@ -226,22 +282,40 @@ const DashboardApp = () => {
 
   useInput((input, key) => {
     if (initRequired) {
-      if (key.escape) {
+      if (key.escape || input === 'q') {
         exit();
       }
       return;
     }
 
     if (screen !== 'menu') {
-      if (key.escape) {
+      if (key.escape || input === 'q') {
         if (
           screen === 'packs_menu' ||
           screen === 'stacks_menu' ||
           screen === 'backup_menu' ||
           screen === 'sync_menu' ||
-          screen === 'import_repo_input'
+          screen === 'import_menu' ||
+          screen === 'connect_github' ||
+          screen === 'gh_cli_required' ||
+          screen === 'change_local_folder_input'
         ) {
           setScreen('menu');
+          return;
+        }
+
+        if (screen === 'import_repo_input') {
+          setScreen('import_menu');
+          return;
+        }
+
+        if (screen === 'change_repo_input') {
+          setScreen('sync_menu');
+          return;
+        }
+
+        if (screen === 'change_repo_mode') {
+          setScreen('change_repo_input');
           return;
         }
 
@@ -554,9 +628,13 @@ const DashboardApp = () => {
     setScreen(item.value as Screen);
   };
 
-  const handleSyncMenuSelect = (item: { value: string }) => {
+  const handleSyncMenuSelect = async (item: { value: string }) => {
     if (item.value === 'back') {
       setScreen('menu');
+      return;
+    }
+    if (item.value === 'disconnect_github') {
+      await logoutGithub();
       return;
     }
     setScreen(item.value as Screen);
@@ -650,6 +728,8 @@ const DashboardApp = () => {
     const syncItems = [
       { label: 'Push to GitHub', value: 'sync_push_app' },
       { label: 'Pull from GitHub', value: 'sync_pull_app' },
+      { label: 'Change GitHub Repository', value: 'change_repo_input' },
+      { label: 'Disconnect GitHub (Switch to Local)', value: 'disconnect_github' },
       { label: '← Back to Main Menu', value: 'back' },
     ];
     return (
@@ -670,7 +750,12 @@ const DashboardApp = () => {
 
   // Active Applications integration
   if (screen === 'browse') {
-    return <BrowseApp initialView="marketplace" onBack={() => setScreen('menu')} />;
+    return (
+      <BrowseApp
+        initialView={MARKETPLACE_ENABLED ? 'marketplace' : 'local'}
+        onBack={() => setScreen('menu')}
+      />
+    );
   }
 
   if (screen === 'my-assets') {
@@ -1402,6 +1487,41 @@ const DashboardApp = () => {
   }
 
   // Import workflows
+  if (screen === 'import_menu') {
+    const importMenuItems = [
+      { label: 'Import from AI Tool or Editor', value: 'import_wizard' },
+      { label: 'Import from GitHub or Custom Path', value: 'import_repo_input' },
+      { label: '← Back to Main Menu', value: 'back' },
+    ];
+    return (
+      <Box flexDirection="column" paddingX={1} height={rows} justifyContent="space-between">
+        <Box flexDirection="column">
+          <Header compact />
+          <Text bold color={theme.accent}>Import Assets</Text>
+          <Box marginTop={1}>
+            <CustomSelectInput
+              items={importMenuItems}
+              onSelect={(item) => {
+                if (item.value === 'back') {
+                  setScreen('menu');
+                } else {
+                  setScreen(item.value as Screen);
+                }
+              }}
+            />
+          </Box>
+        </Box>
+        <Box>
+          <Text color={theme.dim}>press enter to select · esc go back</Text>
+        </Box>
+      </Box>
+    );
+  }
+
+  if (screen === 'import_wizard') {
+    return <ImportWizardApp onBack={() => setScreen('import_menu')} />;
+  }
+
   if (screen === 'import_repo_input') {
     return (
       <InputScreen
@@ -1411,13 +1531,66 @@ const DashboardApp = () => {
           setInputVal(val);
           setScreen('import_app');
         }}
-        onBack={() => setScreen('menu')}
+        onBack={() => setScreen('import_menu')}
       />
     );
   }
 
   if (screen === 'import_app') {
-    return <StableScreenWrapper><ImportApp source={inputVal} onBack={() => setScreen('menu')} /></StableScreenWrapper>;
+    return <StableScreenWrapper><ImportApp source={inputVal} onBack={() => setScreen('import_menu')} /></StableScreenWrapper>;
+  }
+
+  if (screen === 'change_local_folder_input') {
+    return (
+      <InputScreen
+        title="Change Local Folder Path"
+        placeholder="Enter path (e.g. ~/.aman-custom)..."
+        onSubmit={(val) => {
+          void changeLocalFolder(val);
+        }}
+        onBack={() => setScreen('menu')}
+      />
+    );
+  }
+
+  if (screen === 'change_repo_input') {
+    return (
+      <InputScreen
+        title="Change GitHub Repository"
+        placeholder="Enter repository (e.g. username/repo)..."
+        onSubmit={(val) => {
+          setInputVal(val);
+          setScreen('change_repo_mode');
+        }}
+        onBack={() => setScreen('sync_menu')}
+      />
+    );
+  }
+
+  if (screen === 'change_repo_mode') {
+    const modes = [
+      { label: 'Connect to an Existing Repository', value: 'existing' },
+      { label: 'Create a New Private Repository', value: 'create' },
+    ];
+    return (
+      <Box flexDirection="column" paddingX={1} height={rows} justifyContent="space-between">
+        <Box flexDirection="column">
+          <Header compact />
+          <Text bold color={theme.accent}>Select Repository Mode</Text>
+          <Box marginTop={1}>
+            <CustomSelectInput
+              items={modes}
+              onSelect={async (item) => {
+                await connectGithub(inputVal, item.value as 'create' | 'existing');
+              }}
+            />
+          </Box>
+        </Box>
+        <Box>
+          <Text color={theme.dim}>press enter to select · esc go back</Text>
+        </Box>
+      </Box>
+    );
   }
 
   // Default Dashboard Home Screen

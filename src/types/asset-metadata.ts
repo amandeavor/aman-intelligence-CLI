@@ -55,6 +55,12 @@ export interface AssetMetadata {
   installedAt?: string;
   originalName?: string;
   originalSlug?: string;
+  /** Import provenance — tracks which tool and path an asset was imported from. */
+  provenance?: {
+    tool: string;
+    sourcePath: string;
+    importedAt: string;
+  };
 }
 
 export interface CreateAssetMetadataInput {
@@ -76,6 +82,11 @@ export interface CreateAssetMetadataInput {
   originalSlug?: string;
   createdAt?: string;
   updatedAt?: string;
+  provenance?: {
+    tool: string;
+    sourcePath: string;
+    importedAt: string;
+  };
 }
 
 export function createAssetMetadata(
@@ -118,6 +129,7 @@ export function createAssetMetadata(
     installedAt: overrides.installedAt,
     originalName: overrides.originalName ?? name,
     originalSlug: overrides.originalSlug,
+    provenance: overrides.provenance,
   };
 }
 
@@ -179,6 +191,15 @@ export function normalizeAssetMetadata(raw: Record<string, unknown>, type: Asset
 
   if (typeof raw.updatedAt === 'string') {
     base.updatedAt = raw.updatedAt;
+  }
+
+  const provRaw = raw.provenance as Record<string, unknown> | undefined;
+  if (provRaw && typeof provRaw.tool === 'string' && typeof provRaw.sourcePath === 'string' && typeof provRaw.importedAt === 'string') {
+    base.provenance = {
+      tool: provRaw.tool,
+      sourcePath: provRaw.sourcePath,
+      importedAt: provRaw.importedAt,
+    };
   }
 
   return base;

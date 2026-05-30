@@ -36,11 +36,27 @@ aman init --github
 
 The CLI does not ship with pre-installed skills, prompts, or MCPs. Choose one:
 
-**Import from a local folder** (canonical layout with `SKILL.md`, `PROMPT.md`, or `mcp.json`):
+**Import from another tool** (interactive wizard):
+
+```bash
+aman import
+```
+
+**Import using shorthand CLI commands (Cursor / Antigravity / Windsurf)**:
+
+```bash
+aman import cursor --global         # Import rules and MCPs from Cursor
+aman import antigravity --global    # Import plugins and MCPs from Antigravity
+```
+
+**Import from a local folder or another Aman environment**:
 
 ```bash
 aman import ./path-to-assets --global
+aman import --from aman-environment ../other-project --global
 ```
+
+Full source list and guide: [docs/IMPORT-GUIDE.md](./docs/IMPORT-GUIDE.md).
 
 **Install from the registry** (after publishing or using a known slug):
 
@@ -68,7 +84,7 @@ aman browse
 aman search <query>
 ```
 
-Interactive commands need a TTY. In scripts:
+Interactive commands need a TTY (recommended 80×24 or larger). In scripts:
 
 ```bash
 aman doctor

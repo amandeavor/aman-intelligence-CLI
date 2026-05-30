@@ -15,9 +15,9 @@ npx aman-cli doctor
 ### Included
 
 - Skills, prompts, and MCPs as equal first-class assets
-- Install, browse, search, import, export, packs, stacks, backup, doctor, sync
+- Install, browse, search, import (wizard + IDE adapters), export, packs, stacks, backup, doctor, sync
 - Local registry adapters and lockfile with SHA-256 integrity
-- **Zero default assets** in the package — users install from registry, import, marketplace, or their own sources
+- **Zero default assets** in the package — users install from registry, import, or their own sources
 
 ### Not included in the npm tarball
 
@@ -27,7 +27,8 @@ npx aman-cli doctor
 
 ### Known limitations
 
-- Interactive UI requires a TTY
+- Interactive UI requires a TTY (minimum recommended size: 80×24; hard minimum 70×20)
+- GitHub topic marketplace discovery is not enabled in v0.1.0
 - Quote `@` in PowerShell for registry slugs: `"@scope/name@1.0.0"`
 - `npx aman-cli` with no args installs globally (see README)
 

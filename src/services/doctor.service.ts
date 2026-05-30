@@ -33,7 +33,7 @@ export class DoctorService {
         ? `Optional dev/catalog tree found beside the CLI package`
         : anyBundled
           ? `Partial catalog tree (skills: ${bundledSkills}, prompts: ${bundledPrompts}, mcps: ${bundledMcps})`
-          : `No bundled assets ship with the CLI — install via registry, import, or marketplace`,
+          : `No bundled assets ship with the CLI — install via registry or import`,
     });
 
     let gitAvailable = false;

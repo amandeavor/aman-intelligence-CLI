@@ -31,20 +31,6 @@ export async function writeJsonAtomic<T>(filePath: string, data: T): Promise<voi
   await fs.rename(tmpPath, filePath);
 }
 
-export async function readYaml<T>(filePath: string): Promise<T | null> {
-  try {
-    const data = await fs.readFile(filePath, 'utf-8');
-    return yaml.load(data) as T;
-  } catch {
-    return null;
-  }
-}
-
-export async function writeYaml<T>(filePath: string, data: T): Promise<void> {
-  await ensureDir(path.dirname(filePath));
-  await fs.writeFile(filePath, yaml.dump(data), 'utf-8');
-}
-
 export async function copyDir(src: string, dest: string): Promise<void> {
   if (!existsSync(src)) return;
   await ensureDir(dest);
@@ -83,12 +69,15 @@ export function exists(targetPath: string): boolean {
   return existsSync(targetPath);
 }
 
-export async function readFrontmatter(mdPath: string): Promise<any | null> {
+export async function readFrontmatter(mdPath: string): Promise<Record<string, unknown> | null> {
   try {
     const content = await fs.readFile(mdPath, 'utf-8');
     const match = content.match(/^---\n([\s\S]*?)\n---/);
     if (match && match[1]) {
-      return yaml.load(match[1]);
+      const parsed = yaml.load(match[1]);
+      if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
+        return parsed as Record<string, unknown>;
+      }
     }
     return null;
   } catch {

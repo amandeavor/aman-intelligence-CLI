@@ -18,7 +18,8 @@
   "scripts": {
     "prepack": "npm run build",
     "prepublishOnly": "npm run typecheck && npm run build",
-    "build": "tsc",
+    "clean": "node scripts/clean-dist.mjs",
+    "build": "npm run clean && tsc",
     "dev": "tsx src/bin/aman.ts",
     "init": "tsx src/bin/aman.ts init",
     "setup": "tsx src/bin/aman.ts init",
@@ -55,12 +56,12 @@
   "author": "Aman Intelligence",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/aman-intelligence/aman-cli.git"
+    "url": "git+https://github.com/amandeavor/aman-intelligence-CLI.git"
   },
   "bugs": {
-    "url": "https://github.com/aman-intelligence/aman-cli/issues"
+    "url": "https://github.com/amandeavor/aman-intelligence-CLI/issues"
   },
-  "homepage": "https://github.com/aman-intelligence/aman-cli#readme",
+  "homepage": "https://github.com/amandeavor/aman-intelligence-CLI#readme",
   "keywords": [
     "ai",
     "workflow",

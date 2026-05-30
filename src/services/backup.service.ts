@@ -111,7 +111,7 @@ export class BackupService {
       }
       onProgress?.(100);
 
-    } catch (err: any) {
+    } catch (err: unknown) {
       // 5. Transaction-like rollback on failure!
       // Wipe corrupt/incomplete folders
       for (const dir of dirsToRestore) {
@@ -139,18 +139,22 @@ export class BackupService {
         await fs.rename(lockfileRollback, lockfilePath).catch(() => {});
       }
 
-      throw new Error(`Restore failed. Environment successfully rolled back. Detail: ${err.message}`);
+      const detail = err instanceof Error ? err.message : String(err);
+      throw new Error(`Restore failed. Environment successfully rolled back. Detail: ${detail}`);
     }
   }
 
   private async verifyRestore(baseDir: string, backupDir: string): Promise<void> {
     const { readJson } = await import('../storage/filesystem.js');
     
-    // 1. Verify lockfile exists and parses
+    // 1. Verify lockfile when the backup included one
     const lockPath = path.join(baseDir, 'aman.lock');
-    const lockfileContent = await readJson<any>(lockPath);
-    if (!lockfileContent) {
-      throw new Error('Lockfile (aman.lock) is corrupted/unreadable after restore');
+    const backupLockPath = path.join(backupDir, 'aman.lock');
+    if (exists(backupLockPath)) {
+      const lockfileContent = await readJson<Record<string, unknown>>(lockPath);
+      if (!lockfileContent) {
+        throw new Error('Lockfile (aman.lock) is corrupted/unreadable after restore');
+      }
     }
 
     // 2. Read the backup directories and verify existence of expected assets

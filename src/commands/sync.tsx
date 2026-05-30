@@ -514,7 +514,7 @@ export async function syncCommand(args: string[]) {
   const action = args[0] as 'push' | 'pull';
   if (action !== 'push' && action !== 'pull') {
     console.log('  Usage: aman sync <push|pull>');
-    return;
+    process.exit(1);
   }
 
   if (!process.stdin.isTTY) {

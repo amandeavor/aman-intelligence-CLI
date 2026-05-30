@@ -42,6 +42,9 @@ export interface ResponsiveLayout {
   canShowDetailsPanel: boolean;
 }
 
+/** Below this width: browse/search use plain output only. */
+export const PLAIN_OUTPUT_MAX_COLUMNS = 60;
+
 export const MIN_COLUMNS = 70;
 export const MIN_ROWS = 20;
 
