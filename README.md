@@ -1,6 +1,6 @@
 # Aman Intelligence
 
-![Aman Intelligence](./images/ai-cli.png)
+![Aman Intelligence](./images/ai-cli-v1.png)
 
 Aman is the package manager for AI workflow assets.
 

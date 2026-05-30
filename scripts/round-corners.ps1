@@ -1,7 +1,7 @@
 Add-Type -AssemblyName System.Drawing
 
-$imagePath = "C:\Users\Admin\Desktop\aman-intelligence\images\ai-cli.png"
-$outputPath = "C:\Users\Admin\Desktop\aman-intelligence\images\ai-cli.png"
+$imagePath = "C:\Users\Admin\Desktop\aman-intelligence\images\ai-cli-v1.png"
+$outputPath = "C:\Users\Admin\Desktop\aman-intelligence\images\ai-cli-v1.png"
 
 if (!(Test-Path $imagePath)) {
     Write-Error "Original image not found at $imagePath"
