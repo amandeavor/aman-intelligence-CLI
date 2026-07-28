@@ -18,7 +18,7 @@ Most developers have skills, prompts, and MCP configurations scattered across Gi
 
 ## Quick install
 
-After the package is [published to npm](https://www.npmjs.com/package/aman-cli) as `aman-cli`:
+Install the published [`aman-cli` package](https://www.npmjs.com/package/aman-cli):
 
 ```bash
 npx aman-cli
