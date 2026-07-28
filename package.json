@@ -56,12 +56,12 @@
   "author": "Aman Intelligence",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/amandeavor/aman-intelligence-CLI.git"
+    "url": "git+https://github.com/amandeavor/aman-cli.git"
   },
   "bugs": {
-    "url": "https://github.com/amandeavor/aman-intelligence-CLI/issues"
+    "url": "https://github.com/amandeavor/aman-cli/issues"
   },
-  "homepage": "https://github.com/amandeavor/aman-intelligence-CLI#readme",
+  "homepage": "https://github.com/amandeavor/aman-cli#readme",
   "keywords": [
     "ai",
     "workflow",

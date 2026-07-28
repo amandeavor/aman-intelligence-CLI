@@ -59,6 +59,6 @@ Environment:
   AMAN_REGISTRY_BACKEND   Registry adapter: local (default) or github
 
 Documentation:
-  https://github.com/amandeavor/aman-intelligence-CLI#readme
+  https://github.com/amandeavor/aman-cli#readme
 `);
 }
