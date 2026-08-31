@@ -27,6 +27,7 @@
     "search": "tsx src/bin/aman.ts search",
     "doctor": "tsx src/bin/aman.ts doctor",
     "start": "tsx src/bin/aman.ts",
+    "test": "tsx --test tests/mcp-local.test.ts",
     "typecheck": "tsc --noEmit",
     "pack:check": "npm pack --dry-run"
   },

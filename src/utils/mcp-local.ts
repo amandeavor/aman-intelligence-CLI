@@ -87,12 +87,27 @@ export function mcpRequiresLocalConfig(mcpData: Record<string, unknown>): boolea
 
 const GITIGNORE_MCP_LINE = 'mcps/**/mcp.local.json';
 
+export const MCP_LOCAL_GITIGNORE_PATTERNS = [
+  'mcps/**/mcp.local.json',
+  '**/mcp.local.json',
+  'mcp.local.json',
+  'mcps/*/mcp.local.json',
+  '*.local.json',
+  '**/*.local.json',
+];
+
+export function isMcpLocalGitignoredLine(line: string): boolean {
+  const trimmed = line.trim();
+  if (!trimmed || trimmed.startsWith('#')) return false;
+  return MCP_LOCAL_GITIGNORE_PATTERNS.some((pattern) => trimmed === pattern || trimmed === `/${pattern}`);
+}
+
 export async function ensureMcpLocalGitignore(scopeRoot: string): Promise<boolean> {
   const gitignorePath = path.join(scopeRoot, '.gitignore');
   let content = '';
   if (exists(gitignorePath)) {
     content = await fs.readFile(gitignorePath, 'utf-8');
-    if (content.split('\n').some((line) => line.trim() === GITIGNORE_MCP_LINE || line.trim() === '**/mcp.local.json')) {
+    if (content.split('\n').some(isMcpLocalGitignoredLine)) {
       return false;
     }
     if (!content.endsWith('\n')) content += '\n';
@@ -114,15 +129,7 @@ export async function readGitignoreContent(scopeRoot: string): Promise<string> {
 export async function gitignoreIncludesMcpLocalAsync(scopeRoot: string): Promise<boolean> {
   const content = await readGitignoreContent(scopeRoot);
   if (!content) return false;
-  return content.split('\n').some((line) => {
-    const t = line.trim();
-    return (
-      t === GITIGNORE_MCP_LINE ||
-      t === '**/mcp.local.json' ||
-      t === 'mcp.local.json' ||
-      t === 'mcps/*/mcp.local.json'
-    );
-  });
+  return content.split('\n').some(isMcpLocalGitignoredLine);
 }
 
 export async function countEmptyMcpLocalValues(assetDir: string): Promise<number> {
@@ -133,7 +140,9 @@ export async function countEmptyMcpLocalValues(assetDir: string): Promise<number
   let empty = 0;
   for (const [key, value] of Object.entries(data)) {
     if (key === '_comment') continue;
-    if (value === '' || value === null || value === undefined) empty++;
+    if (value === '' || value === null || value === undefined || (typeof value === 'string' && value.trim() === '')) {
+      empty++;
+    }
   }
   return empty;
 }
