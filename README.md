@@ -6,7 +6,6 @@
 
 **The Package Manager & Workspace Orchestrator for AI Workflow Assets.**
 
-[![npm version](https://img.shields.io/npm/v/aman-cli?color=CB3837&logo=npm)](https://www.npmjs.com/package/aman-cli)
 [![Node.js](https://img.shields.io/badge/node-%3E%3D18.0.0-339933?logo=node.js&logoColor=white)](https://nodejs.org/)
 [![CI Status](https://img.shields.io/github/actions/workflow/status/amandeavor/Aman-CLI/ci.yml?branch=main&label=CI)](https://github.com/amandeavor/Aman-CLI/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
@@ -24,7 +23,7 @@
 
 ---
 
-> **Status:** Early public release. Core install, lock, sync, import, and registry workflows are available, while formats and commands may still evolve before 1.0.
+> **Status:** Early public release, currently installed from source. Core install, lock, sync, import, and registry workflows are available, while formats and commands may still evolve before 1.0.
 
 Most developers have custom **Agent Skills**, **System Prompts**, and **Model Context Protocol (MCP)** server configurations scattered across private folders, Gists, and random repositories. 
 
@@ -59,16 +58,15 @@ Most developers have custom **Agent Skills**, **System Prompts**, and **Model Co
 
 ## Quickstart
 
-### 1. Run with `npx` (Zero Installation)
+### 1. Install from source
 
 ```bash
-npx aman-cli
-```
-
-Or install globally via `npm`:
-
-```bash
-npm install -g aman-cli
+git clone https://github.com/amandeavor/Aman-CLI.git
+cd Aman-CLI
+npm ci
+npm run build
+npm link
+aman --version
 ```
 
 ### 2. Initialize your workspace
