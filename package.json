@@ -27,6 +27,7 @@
     "search": "tsx src/bin/aman.ts search",
     "doctor": "tsx src/bin/aman.ts doctor",
     "start": "tsx src/bin/aman.ts",
+    "test": "vitest run",
     "typecheck": "tsc --noEmit",
     "pack:check": "npm pack --dry-run"
   },
@@ -50,7 +51,8 @@
     "@types/node": "^22.0.0",
     "@types/react": "^18.3.0",
     "tsx": "^4.19.0",
-    "typescript": "^5.7.0"
+    "typescript": "^5.7.0",
+    "vitest": "^3.2.7"
   },
   "license": "MIT",
   "author": "Aman Intelligence",

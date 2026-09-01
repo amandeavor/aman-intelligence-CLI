@@ -24,6 +24,8 @@
 
 ---
 
+> **Status:** Early public release. Core install, lock, sync, import, and registry workflows are available, while formats and commands may still evolve before 1.0.
+
 Most developers have custom **Agent Skills**, **System Prompts**, and **Model Context Protocol (MCP)** server configurations scattered across private folders, Gists, and random repositories. 
 
 `aman` brings package-manager ergonomics to AI workflows: install, lock, sync, and share skills and tool configs across machines and IDEs with reproducible `aman.lock` files.
