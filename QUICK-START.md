@@ -5,19 +5,18 @@ Get from zero to your first installed asset in under five minutes.
 ## 1. Install the CLI
 
 ```bash
-npx aman-cli
-```
-
-Running `npx aman-cli` with no arguments installs `aman` globally. To run once without installing:
-
-```bash
-npx aman-cli doctor
+git clone https://github.com/amandeavor/Aman-CLI.git
+cd Aman-CLI
+npm ci
+npm run build
+npm link
 ```
 
 Confirm:
 
 ```bash
 aman --version
+aman doctor
 ```
 
 ## 2. Initialize
