@@ -20,8 +20,6 @@
   <a href="#documentation">Documentation</a>
 </p>
 
-<img src="./images/ai-cli-v1.png" alt="Aman CLI Interface Preview" width="100%" />
-
 </div>
 
 ---
