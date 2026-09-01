@@ -1,0 +1,22 @@
+name: Feature Request
+description: Propose a new command, adapter, or workflow enhancement
+labels: ["enhancement", "needs-discussion"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Propose a new feature or improvement for Aman CLI.
+  - type: textarea
+    id: motivation
+    attributes:
+      label: Motivation
+      description: What problem does this solve?
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed Solution
+      description: Describe how the feature should behave.
+    validations:
+      required: true

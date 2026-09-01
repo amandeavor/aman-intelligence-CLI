@@ -1,0 +1,36 @@
+name: Bug Report
+description: Report an issue or bug in Aman CLI
+labels: ["bug", "needs-triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you for reporting a bug. Please fill in the details below.
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem Description
+      description: Describe what happened and the expected behavior.
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Steps to Reproduce
+      description: Provide clear steps or CLI commands to reproduce the issue.
+      placeholder: |
+        1. Run `aman install ...`
+        2. See error ...
+    validations:
+      required: true
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment
+      description: Node version, OS, and `aman --version`.
+      value: |
+        - OS: [e.g. macOS 14, Ubuntu 24.04, Windows 11]
+        - Node version: [e.g. 20.12.0]
+        - Aman CLI version: [e.g. 0.1.0]
+    validations:
+      required: true
