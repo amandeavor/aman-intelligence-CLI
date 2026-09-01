@@ -1,120 +1,140 @@
-# Aman Intelligence
+<div align="center">
 
-![Aman Intelligence](./images/ai-cli-v1.png)
+# Aman CLI
 
-Aman is the package manager for AI workflow assets.
+**The Package Manager & Workspace Orchestrator for AI Workflow Assets.**
 
-Most developers have skills, prompts, and MCP configurations scattered across GitHub repositories, local folders, and notes. Aman gives you one place to install, organize, sync, and share them — the same way npm manages packages.
+[![npm version](https://img.shields.io/npm/v/aman-cli?color=CB3837&logo=npm)](https://www.npmjs.com/package/aman-cli)
+[![Node.js](https://img.shields.io/badge/node-%3E%3D18.0.0-339933?logo=node.js&logoColor=white)](https://nodejs.org/)
+[![CI Status](https://img.shields.io/github/actions/workflow/status/amandeavor/Aman-CLI/ci.yml?branch=main&label=CI)](https://github.com/amandeavor/Aman-CLI/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.8-3178C6?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 
-## What Aman manages
+<p align="center">
+  <a href="#quickstart">Quickstart</a> •
+  <a href="#what-aman-manages">Architecture</a> •
+  <a href="#cli-commands">Commands</a> •
+  <a href="#editor--agent-imports">Imports</a> •
+  <a href="#documentation">Documentation</a>
+</p>
 
-| Kind | What it is |
-|------|------------|
-| **Skills** | Reusable agent instructions (`SKILL.md`) |
-| **Prompts** | System and task prompts (`PROMPT.md`) |
-| **MCPs** | Model Context Protocol server configs (`mcp.json`) |
-| **Packs** | Bundles of assets you can share as `.amanpack` files |
-| **Stacks** | Named workflows that combine skills, prompts, and MCPs |
+<img src="./images/ai-cli-v1.png" alt="Aman CLI Interface Preview" width="100%" />
 
-## Quick install
+</div>
 
-Install the published [`aman-cli` package](https://www.npmjs.com/package/aman-cli):
+---
+
+Most developers have custom **Agent Skills**, **System Prompts**, and **Model Context Protocol (MCP)** server configurations scattered across private folders, Gists, and random repositories. 
+
+`aman` brings package-manager ergonomics to AI workflows: install, lock, sync, and share skills and tool configs across machines and IDEs with reproducible `aman.lock` files.
+
+---
+
+## What Aman Manages
+
+```
+                    ┌──────────────────────────────────────────────┐
+                    │           Aman Workflow Ecosystem            │
+                    └──────────────────────┬───────────────────────┘
+                                           │
+         ┌──────────────────┬──────────────┴─────┬──────────────────┐
+         ▼                  ▼                    ▼                  ▼
+  ┌──────────────┐   ┌──────────────┐     ┌──────────────┐   ┌──────────────┐
+  │ Agent Skills │   │ Task Prompts │     │ MCP Servers  │   │ Stacks/Packs │
+  │  (SKILL.md)  │   │ (PROMPT.md)  │     │  (mcp.json)  │   │  (.amanpack) │
+  └──────────────┘   └──────────────┘     └──────────────┘   └──────────────┘
+```
+
+| Asset Type | Canonical Format | What It Does |
+| :--- | :--- | :--- |
+| **Skills** | `skills/<name>/SKILL.md` | Reusable procedural instructions, tools, and workflows for coding agents. |
+| **Prompts** | `prompts/<name>/PROMPT.md` | System-level prompt templates with parameter substitution. |
+| **MCPs** | `mcps/<name>/mcp.json` | Model Context Protocol servers, transport settings, and environment secrets. |
+| **Packs** | `.amanpack` archives | Shareable, compressed bundles combining skills, prompts, and server configs. |
+| **Stacks** | Named manifest sets | Pre-configured environment setups combining related skills and tool servers. |
+
+---
+
+## Quickstart
+
+### 1. Run with `npx` (Zero Installation)
 
 ```bash
 npx aman-cli
 ```
 
-Running `npx aman-cli` with no arguments installs Aman globally. To run without installing, pass a subcommand:
-
-```bash
-npx aman-cli doctor
-```
-
-Then use the CLI from anywhere:
-
-```bash
-aman --version
-aman init --local
-```
-
-**Other install paths:**
+Or install globally via `npm`:
 
 ```bash
 npm install -g aman-cli
-aman doctor
 ```
 
-The CLI ships with **no default assets**. Install skills, prompts, and MCPs from the registry, import, or your own directories.
-
-## Three commands that show the value
+### 2. Initialize your workspace
 
 ```bash
-# 1. Set up your environment (local or GitHub-backed)
+# Initialize in current project
 aman init --local
 
-# 2. Install an asset (registry example — publish or use a known slug@version)
-aman install "@your-scope/your-asset@1.0.0" --global
+# Or initialize global developer profile
+aman init --global
+```
 
-# 3. Verify everything is healthy
+### 3. Verify environment health
+
+```bash
 aman doctor
 ```
 
-Or import from a folder, GitHub repository, another AI tool, or an Aman environment:
+---
+
+## CLI Commands
+
+| Command | Description |
+| :--- | :--- |
+| `aman init [--local \| --global]` | Initializes an Aman environment directory with `.aman/` configuration and lockfile. |
+| `aman install <package>` | Installs an asset package or stack with cryptographic dependency resolution. |
+| `aman import [adapter]` | Discovers and imports existing rules and MCPs from Claude Code, Cursor, Windsurf, or Antigravity. |
+| `aman doctor` | Performs static pre-flight diagnostics (node version, lockfiles, secret isolation, layout rules). |
+| `aman pack <name>` | Compiles an asset directory into a distributable `.amanpack` archive. |
+| `aman sync` | Synchronizes active workspace assets with a remote GitHub storage profile. |
+
+---
+
+## Editor & Agent Imports
+
+`aman` can automatically extract and normalize skills and MCP servers from existing IDEs and agent runners:
 
 ```bash
-aman import                    # interactive wizard (TTY)
-aman import cursor --global    # shorthand syntax for Cursor rules/MCPs
-aman import antigravity --global # shorthand syntax for Antigravity rules/MCPs
-aman import ./my-assets --global
+# Interactive import wizard
+aman import
+
+# Direct imports from configured editors
+aman import cursor --global
+aman import antigravity --global
+aman import ./local-skills-folder --global
 aman import owner/repo --global
 ```
 
-See [docs/IMPORT-GUIDE.md](./docs/IMPORT-GUIDE.md) for the full import guide covering Claude Code, Cursor, Windsurf, Continue.dev, VS Code, Copilot, Codex, Antigravity, and Aman Environment imports.
+*See [docs/IMPORT-GUIDE.md](./docs/IMPORT-GUIDE.md) for detailed instructions covering Claude Code, Cursor, Windsurf, Continue.dev, Copilot, Codex, and Antigravity.*
 
-## Documentation (GitHub)
+---
 
-| Document | Audience |
-|----------|----------|
-| [QUICK-START.md](./QUICK-START.md) | New users — zero to first asset in minutes |
-| [docs/IMPORT-GUIDE.md](./docs/IMPORT-GUIDE.md) | Import from Claude Code, VS Code, Copilot, Codex, and local folders |
-| [docs/ASSET-SPEC.md](./docs/ASSET-SPEC.md) | Publishers — canonical asset format |
-| [docs/REGISTRY-SPEC.md](./docs/REGISTRY-SPEC.md) | Contributors — registry contract |
-| [docs/LOCKFILE-SPEC.md](./docs/LOCKFILE-SPEC.md) | Developers — reproducible installs |
-| [CONTRIBUTING.md](./CONTRIBUTING.md) | Contributors — code, assets, and PRs |
-| [CODE_OF_CONDUCT.md](./CODE_OF_CONDUCT.md) | Community standards and pledge |
-| [GOVERNANCE.md](./GOVERNANCE.md) | Maintainership and decision process |
-| [ROADMAP.md](./ROADMAP.md) | Planned features and milestones |
-| [SUPPORT.md](./SUPPORT.md) | Getting help and support |
-| [SECURITY.md](./SECURITY.md) | Security model and reporting |
-| [RELEASE-NOTES.md](./RELEASE-NOTES.md) | Release history |
-| [AMAN_CONSTITUTION.md](./AMAN_CONSTITUTION.md) | Permanent architectural principles |
-| [PUBLISHING.md](./PUBLISHING.md) | Maintainers — npm pack and publish |
+## Documentation
 
-Normative specs: [docs/specs/](./docs/specs/) (`AMAN-ASSET-SPEC-V1.md`, `AMAN-REGISTRY-SPEC-V1.md`, `AMAN-LOCKFILE-SPEC-V1.md`, and related).
+| Guide | Description |
+| :--- | :--- |
+| [**Quickstart Guide**](./QUICK-START.md) | Step-by-step walkthrough from initial setup to first installed skill. |
+| [**Import Guide**](./docs/IMPORT-GUIDE.md) | Multi-IDE discovery and migration manual. |
+| [**Asset Specification**](./docs/ASSET-SPEC.md) | Standard directory layout, metadata schema, and validation rules. |
+| [**Registry Specification**](./docs/REGISTRY-SPEC.md) | Package publishing, versioning, and distribution contract. |
+| [**Lockfile Specification**](./docs/LOCKFILE-SPEC.md) | Reproducible environment schema for `aman.lock`. |
+| [**Aman Constitution**](./AMAN_CONSTITUTION.md) | Core architectural principles and local-first data guarantees. |
+| [**Contributing Guide**](./CONTRIBUTING.md) | Local development, test suites, and PR standards. |
+| [**Security Policy**](./SECURITY.md) | Secret isolation (`mcp.local.json`) and vulnerability reporting. |
+| [**Project Roadmap**](./ROADMAP.md) | Planned capabilities, transports, and registry milestones. |
 
-## Configuration
-
-### `AMAN_REGISTRY_BACKEND`
-
-| Value | Adapter | Storage |
-|-------|---------|---------|
-| `local` (default) | Local filesystem | `~/.aman/registry/` |
-| `github` | GitHub mirror | `~/.aman/repositories/{repo}/registry/` |
-
-```bash
-export AMAN_REGISTRY_BACKEND=github
-```
-
-## Requirements
-
-- Node.js 18+
-- Git (for import and GitHub sync)
-- GitHub CLI (`gh`) optional — for `aman init --github` and `aman sync`
-
-## Contributing
-
-See [CONTRIBUTING.md](./CONTRIBUTING.md).
+---
 
 ## License
 
-MIT — see [LICENSE](./LICENSE).
+This project is licensed under the [MIT License](LICENSE).
