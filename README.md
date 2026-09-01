@@ -1,5 +1,7 @@
 <div align="center">
 
+<img src="docs/assets/social-preview.png" alt="Aman CLI: the package manager for AI workflows" width="100%">
+
 # Aman CLI
 
 **The Package Manager & Workspace Orchestrator for AI Workflow Assets.**
