@@ -81,6 +81,10 @@ See [docs/IMPORT-GUIDE.md](./docs/IMPORT-GUIDE.md) for the full import guide cov
 | [docs/REGISTRY-SPEC.md](./docs/REGISTRY-SPEC.md) | Contributors — registry contract |
 | [docs/LOCKFILE-SPEC.md](./docs/LOCKFILE-SPEC.md) | Developers — reproducible installs |
 | [CONTRIBUTING.md](./CONTRIBUTING.md) | Contributors — code, assets, and PRs |
+| [CODE_OF_CONDUCT.md](./CODE_OF_CONDUCT.md) | Community standards and pledge |
+| [GOVERNANCE.md](./GOVERNANCE.md) | Maintainership and decision process |
+| [ROADMAP.md](./ROADMAP.md) | Planned features and milestones |
+| [SUPPORT.md](./SUPPORT.md) | Getting help and support |
 | [SECURITY.md](./SECURITY.md) | Security model and reporting |
 | [RELEASE-NOTES.md](./RELEASE-NOTES.md) | Release history |
 | [AMAN_CONSTITUTION.md](./AMAN_CONSTITUTION.md) | Permanent architectural principles |
